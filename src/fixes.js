@@ -41,7 +41,7 @@ function configureSemistandardFixes() {
     },
     commaDangle: {
       lineTest: /./,
-      search: /^(.*),(.*)/,
+      search: /^(.*),(.*)$/,
       replace: '$1$2'
     }
 
