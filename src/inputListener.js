@@ -1,7 +1,11 @@
-
+let { overwritePostfixFile } = require('./fsUtils');
 let readline = require('readline');
 
 export default function beginInputListening(batchPatchInfo) {
+  //console.log('First Patch Errors Len: ' + batchPatchInfo.patches[0].errors.length);
+  //let patches = batchPatchInfo.patches.filter(patch => patch.errors.length);
+  let patches = batchPatchInfo.patches.filter(patch => patch.patchCount);
+
   function lineHandler(rl, initialPrompt) {
     let topLevelHandler = (line) => {
       let goodCommand = commandList.some((command) => {
@@ -37,19 +41,19 @@ export default function beginInputListening(batchPatchInfo) {
       key: /^(s|status)$/,
       message: 'Status!',
       exec: function(rl) {
-        batchPatchInfo.patches.forEach((patch, index) => {
+        patches.forEach((patch, index) => {
           let { fileName, patchCount, fixes } = patch;
           let fileNameShortened = fileName.replace(/.*(\/.*\/.*)/, '$1');
           console.log(` + ${index}: ${fileNameShortened} had ${patchCount} patches`);
         });
-        console.log(` + ${batchPatchInfo.patches.length} total files got patches`);
+        console.log(` + ${patches.length} total files got patches`);
       } 
     };
     let viewPatch = {
       key: /^(v|view)$/,
       message: 'Viewing Files:',
       exec: (rl) => {
-        batchPatchInfo.patches.forEach((patch, index) => {
+        patches.forEach((patch, index) => {
           let { fileName, patchCount, fixes } = patch;
           let fileNameShortened = fileName.replace(/.*(\/.*\/.*)/, '$1');
           console.log(` * ${index}: ${fileNameShortened}`);
@@ -61,7 +65,6 @@ export default function beginInputListening(batchPatchInfo) {
         console.log(newPrompt);
         resetLineHandler(newPrompt, (innerLine) => {
           let indexChoice = +innerLine;
-          let { patches } = batchPatchInfo;
           if (0 <= indexChoice && indexChoice < patches.length) {
             let choice = patches[indexChoice];
             let { fileName, patchCount, fixes } = choice; 
@@ -90,7 +93,7 @@ export default function beginInputListening(batchPatchInfo) {
       key: /^(a|apply)/,
       message: 'Applying Patch',
       exec: function(rl) {
-        batchPatchInfo.patches.forEach((patch, index) => {
+        patches.forEach((patch, index) => {
           let { fileName, patchCount, fixes } = patch;
           let fileNameShortened = fileName.replace(/.*(\/.*\/.*)/, '$1');
           console.log(`  ${index}: ${fileNameShortened}`);
@@ -100,18 +103,17 @@ export default function beginInputListening(batchPatchInfo) {
         console.log(newPrompt);
         resetLineHandler(newPrompt, (innerLine) => {
           let indexChoice = +innerLine;
-          let { patches } = batchPatchInfo;
           if (0 <= indexChoice && indexChoice < patches.length) {
             let choice = patches[indexChoice];
             let { fileName, patchCount } = choice; 
             console.log(` * Patching ${fileName} with ${patchCount} patches`);
-            //overwritePostfixFile(fileName);
+            overwritePostfixFile(fileName);
             resetLineHandler(initialPrompt, topLevelHandler);
           } else if (innerLine.indexOf('a') === 0) {
             patches.forEach((patch) => {
               let { fileName, patchCount } = patch;
               console.log(` * Patching ${fileName} with ${patchCount} patches`);
-              //overwritePostfixFile(fileName);
+              overwritePostfixFile(fileName);
             });
             resetLineHandler(initialPrompt, topLevelHandler);
           } else if (innerLine.indexOf('q') === 0) {
@@ -155,7 +157,7 @@ export default function beginInputListening(batchPatchInfo) {
 
   const initialPrompt = 'lint-fix-cli > ';
   rl.setPrompt(initialPrompt);
-  //rl.prompt();
+  rl.prompt();
 
   let handler = lineHandler(rl, initialPrompt);
   rl.on('line', handler).on('close', function() {
