@@ -1,5 +1,8 @@
 
-export default function configureFixes() {
+let configureFixes = configureSemistandardFixes;
+export default configureFixes;
+
+function configureSemistandardFixes() {
   return {
     // Place semicolon at end of line
     semi: {
@@ -35,6 +38,12 @@ export default function configureFixes() {
       replace: function(match, $1, $2, $3) {
         return $1 + '0' + $2 + $3;
       }
+    },
+    commaDangle: {
+      lineTest: /./,
+      search: /^(.*),(.*)/,
+      replace: '$1$2'
     }
+
   }
 }
