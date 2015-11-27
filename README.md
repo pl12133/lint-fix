@@ -1,3 +1,6 @@
+# What is it?
+
+If you have just added a linter to an existing codebase, or you wish to migrate your codebase to another style; you may encounter hundreds of simple formatting errors. This package will use the output of your `npm run lint` command to build a set of patch files, let you review the patches, and then apply them. 
 
 # Installation
 
