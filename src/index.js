@@ -1,6 +1,6 @@
 'use strict';
 
-let { getFileLines, openFileForPatch, overwriteFileWithLines, getPatchCount } = require('./fsUtils');
+let { getFileLines, openFileForPatch, overwriteFileWithLines, writeFileLinesWithPostfix, getPatchCount } = require('./fsUtils');
 let { default: getErrorsOfLogFile } = require('./lintLogParser');
 let { default: beginInputListening } = require('./inputListener');
 // 1. Load lint log.
@@ -25,20 +25,22 @@ function patchAllAvailableErrorsInLogFile(logFileName) {
     totalErrorCount: 0,
     patches: []
   };
-  errorInfo.forEach((info, index) => {
-    let patchInfo = openFileForPatch(info);
-    let patchedFileLines = patchInfo.lines;
-    // File overwriting is currently disabled during development 
+  errorInfo
+    .filter(info => info.errors.length)
+    .forEach((info, index) => {
+      let patchInfo = openFileForPatch(info);
+      let patchedFileLines = patchInfo.lines;
+      //console.log(`Patching: ${info.fileName} with ${info.errors.length} errors`);
+      // File overwriting is currently disabled during development 
 
-    // Overwrite a file eniterly
-    // overwriteFileWithLines(info.file, patchedFileLines);
+      // Overwrite a file eniterly
+      // overwriteFileWithLines(info.file, patchedFileLines);
 
-    // Write a .lintfixed file temporarily so the user can assess changes
-    // writeFileLinesWithPostfix(info.file, patchedFileLines);
+      // Write a .lintfixed file temporarily so the user can assess changes
+      writeFileLinesWithPostfix(info.fileName, patchedFileLines);
 
-    batchPatchInfo.patches.push(patchInfo);
+      batchPatchInfo.patches.push(patchInfo);
   });
-
   return batchPatchInfo;
 }
 
@@ -46,6 +48,6 @@ function patchAllAvailableErrorsInLogFile(logFileName) {
 
 
 let batchPatchInfo = patchAllAvailableErrorsInLogFile(logFileName);
-console.log(`Patched ${getPatchCount()} of ${batchPatchInfo.patches.length} total errors`);
+console.log(`Patched ${getPatchCount()} in ${batchPatchInfo.patches.length} files`);
 beginInputListening(batchPatchInfo);
 module.exports.default = patchAllAvailableErrorsInLogFile;
