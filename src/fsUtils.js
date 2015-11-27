@@ -20,7 +20,7 @@ export function writeFileLinesWithPostfix(fileName, lines) {
   let postfix = '.lintfixed';
   let fileNamePostfixed = fileName + postfix;
   fs.writeFileSync(fileNamePostfixed, lines.join('\n'), { encoding: 'utf-8' });
-  //console.log(`Wrote to ${fileName}`);
+  //console.log(`Wrote to ${fileNamePostfixed}`);
 }
 export function overwritePostfixFile(fileName) {
   let postfix = '.lintfixed';
@@ -57,21 +57,26 @@ export function openFileForPatch(fileErrors) {
     //This line has an error
     let errorOnThisLine = lineNumbersWithErrors.indexOf(index);
     if (errorOnThisLine >= 0) {
-      let { lineNum, errorType, rule } = fileErrors.errors[errorOnThisLine];
+      let error = fileErrors.errors[errorOnThisLine];
+      let { lineNum, errorType, rule } = error;
       //console.log(`Line ${index}:${errorType} (${rule}) -> error: ${line}`);
       if (rule in fixes) {
         let fix = fixes[rule];
-        if (fix.lineTest && fix.lineTest.test(line)) {
+        if (fix.exec) {
+          line = fix.exec(line, error);
+          patchInfo.fixes.push({
+            lineNum,
+            rule
+          })
+          patchInfo.patchCount++;
+        } else {
           //console.log(`Patching ${rule} on ${index}`);
-          if (fix.search.test(line)) {
-            line = line.replace(fix.search, fix.replace);
-            patchInfo.fixes.push({
-              lineNum,
-              rule
-            })
-            patchInfo.patchCount++;
-          }
-
+          line = line.replace(fix.search, fix.replace);
+          patchInfo.fixes.push({
+            lineNum,
+            rule
+          })
+          patchInfo.patchCount++;
         }
       }
     }
