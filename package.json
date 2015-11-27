@@ -1,17 +1,33 @@
 {
-  "name": "lint-autofix",
+  "name": "lint-fix",
   "version": "0.0.1",
   "description": "A script to automate the fixing of errors received by eslint",
   "main": "index.js",
   "scripts": {
     "start": "CWD=$PWD; cd $NODE_PATH; echo \"Generating eslint-log\"; npm run lint 2>/dev/null > ./eslint-fixer-log.txt; babel-node -- $CWD/src/index.js ./eslint-fixer-log.txt",
-    "test": "moch --compilers js:babel-core/register --recursive"
+    "test": "mocha --compilers js:babel-core/register --recursive"
   },
   "keywords": [
-    "eslint"
+    "eslint",
+    "lint",
+    "lint fix",
+    "linting",
+    "fix",
+    "code linter",
+    "code standards",
+    "code style",
+    "code quality",
+    "checker",
+    "standard",
+    "standard style",
+    "semistandard",
+    "semistandard style",
+    "style",
+    "style checker",
+    "style linter"
   ],
   "author": "pl12133",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "babel-cli": "^6.3.13",
     "babel-preset-es2015": "^6.3.13"
