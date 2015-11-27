@@ -4,7 +4,7 @@
   "description": "A script to automate the fixing of errors received by eslint",
   "main": "index.js",
   "scripts": {
-    "start": "CWD=$PWD; cd $NODE_PATH; npm run lint > ./eslint-fixer-log.txt; babel-node -- $CWD/src/index.js ./eslint-fixer-log.txt",
+    "start": "CWD=$PWD; cd $NODE_PATH; echo \"Generating eslint-log\"; npm run lint 2>/dev/null > ./eslint-fixer-log.txt; babel-node -- $CWD/src/index.js ./eslint-fixer-log.txt",
     "test": "moch --compilers js:babel-core/register --recursive"
   },
   "keywords": [
