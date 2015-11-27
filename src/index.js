@@ -29,7 +29,11 @@ function patchAllAvailableErrorsInLogFile(logFileName) {
     let patchInfo = openFileForPatch(info);
     let patchedFileLines = patchInfo.lines;
     // File overwriting is currently disabled during development 
+
+    // Overwrite a file eniterly
     // overwriteFileWithLines(info.file, patchedFileLines);
+
+    // Write a .lintfixed file temporarily so the user can assess changes
     // writeFileLinesWithPostfix(info.file, patchedFileLines);
 
     batchPatchInfo.patches.push(patchInfo);
