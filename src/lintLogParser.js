@@ -9,11 +9,21 @@ export default function getErrorsOfLogFile(logFileName) {
   });
   return filesAndErrors;
 
+  function getErrorsOfFile(fileName) {
+    let range = getLineRangeOfFile(fileName);
+    let rawErrors = getErrorsInRange(logLines, range);
+    let parsedErrors = parseErrorLines(rawErrors);
+    return {
+      fileName,
+      rawErrors,
+      errors: parsedErrors
+    };
+  }
   function getFilesWithErrors(lines) {
     let nodePath = process.env.NODE_PATH;
     let filesWithErrors = [];
     lines.forEach((line, index) => {
-      if (line.indexOf(nodePath) >= 0) {
+      if (line.indexOf(nodePath) === 0) {
         filesWithErrors.push(line);
       }
     });
@@ -60,15 +70,5 @@ export default function getErrorsOfLogFile(logFileName) {
   }
   function getErrorsInRange(lines, {start, end}) {
     return lines.slice(start,end);
-  }
-  function getErrorsOfFile(fileName) {
-    let range = getLineRangeOfFile(fileName);
-    let rawErrors = getErrorsInRange(logLines, range);
-    let parsedErrors = parseErrorLines(rawErrors);
-    return {
-      file: fileName,
-      rawErrors,
-      errors: parsedErrors
-    };
   }
 }
