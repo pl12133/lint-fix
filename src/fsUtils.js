@@ -8,6 +8,8 @@ export function getPatchCount() {
 }
 
 export function getFileLines(fileName) {
+//  let valid = /(\.js|\.txt)$/.test(fileName);
+//  console.log(`FileName: ${fileName} is valid: ${valid}`);
   let file = fs.readFileSync(fileName, { encoding: 'utf-8' });
   return file.split('\n');
 }
@@ -28,10 +30,15 @@ export function overwritePostfixFile(fileName) {
 
 
 export function openFileForPatch(fileErrors) {
-  let fileName = fileErrors.file;
+  let { fileName } = fileErrors;
   //console.log('Patching ' + fileName);
   let lines = getFileLines(fileName);
-  let patchCount = 0;
+  let patchInfo = { 
+    fileName,
+    patchCount: 0,
+    fixes: [],
+    lines: []
+  };
   let lineNumbersWithErrors = fileErrors.errors.map((error) => {
     // Will return an array of line numbers where errors occur
     let lineNum = error.lineNum.split(':')[0];
@@ -40,37 +47,29 @@ export function openFileForPatch(fileErrors) {
 
   //console.log(`${fileName} has errors on ${lineNumbersWithErrors}`);
   let fixes = configureFixes();
-  let patched = lines.map((line, index) => {
+  let patchedLines = lines.map((line, index) => {
     // 1. determine if should mutate
     //
     // 2. do mutation or not
     //
     // 3. retnrn line
     
-//    let findAndPop = (arr, toFind) => {
-//      let found = arr.indexOf(toFind);
-//      if (found >= 0) {
-//        arr.splice(found, 1);
-//      }
-//      return found;
-//    }
-//    for (let errorOnThisLine = findAndPop(lineNumbersWithErrors, index);
-//         errorOnThisLine >= 0;
-//         errorOnThisLine = findAndPop(lineNumbersWithErrors, index)) 
-      //This line has an error
+    //This line has an error
     let errorOnThisLine = lineNumbersWithErrors.indexOf(index);
     if (errorOnThisLine >= 0) {
-      let { errorType, rule } = fileErrors.errors[errorOnThisLine];
+      let { lineNum, errorType, rule } = fileErrors.errors[errorOnThisLine];
       //console.log(`Line ${index}:${errorType} (${rule}) -> error: ${line}`);
-
-      //console.log('Rule to camel-case ' + ruleToCamelCase);
       if (rule in fixes) {
         let fix = fixes[rule];
         if (fix.lineTest && fix.lineTest.test(line)) {
           //console.log(`Patching ${rule} on ${index}`);
           if (fix.search.test(line)) {
             line = line.replace(fix.search, fix.replace);
-            patchCount++;
+            patchInfo.fixes.push({
+              lineNum,
+              rule
+            })
+            patchInfo.patchCount++;
           }
 
         }
@@ -79,10 +78,11 @@ export function openFileForPatch(fileErrors) {
     return line;
   });
 
-  console.log(`Patched ${patchCount} errors on ${fileName}`);
-  totalPatchedCount += patchCount;
+  console.log(`Patched ${patchInfo.patchCount} errors on ${fileName}`);
+  totalPatchedCount += patchInfo.patchCount;
 
-  return patched;
+  patchInfo.lines = patchedLines;
+  return patchInfo;
 }
 
 
