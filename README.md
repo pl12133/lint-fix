@@ -2,17 +2,21 @@
 # Installation
 
 clone
+
     git clone https://github.com/pl12133/lint-fix
 
 install
+
     cd lint-fix
     npm install
 
 # Setup 
 Set NODE_PATH
+
     export NODE_PAHT=/path/to/your/project
 
 Start
+
     npm start
 
 *Make sure you don't have a file called 'eslint-fix-log.txt' in your NODE_PATH directory as that will get overwritten*
