@@ -2,6 +2,14 @@
 let configureFixes = configureSemistandardFixes;
 export default configureFixes;
 
+export function applyFix(line, fix, error) {
+  if (fix.exec) {
+    line = fix.exec(line, error);
+  } else {
+    line = line.replace(fix.search, fix.replace);
+  }
+  return line;
+}
 // To create a new rule, give it either an `exec` function or a `search/replace` pair of Regex's
 // If a rule has `exec`, that will be executed instead of `search/replace`
 // Signature of `exec` is `function(line, errorInfo)` and it returns a
@@ -22,6 +30,7 @@ function configureSemistandardFixes() {
         return `${$1} (${$2}) {`;
       }
     },
+    // This one could be dangerous if there are nested escaped quotes
     quotes: {
       search: /"/g,
       replace: '\''
@@ -31,7 +40,7 @@ function configureSemistandardFixes() {
       replace: '$1'
     },
     spacedComment: {
-      search: /^(.*)(\/{2,})(.*)$/,
+      search: /^(.*)(\/{2,}|\/\*)(.*)$/,
       replace: '$1$2 $3'
     },
     noFloatingDecimal: {
