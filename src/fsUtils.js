@@ -1,5 +1,5 @@
 let fs = require('fs');
-let { default: configureFixes } = require('./fixes');
+let { default: configureFixes, applyFix } = require('./fixes');
 
 let totalPatchedCount = 0;
 
@@ -28,7 +28,6 @@ export function overwritePostfixFile(fileName) {
   fs.rename(fileNamePostfixed, fileName);
 }
 
-
 export function openFileForPatch(fileErrors) {
   let { fileName } = fileErrors;
   //console.log('Patching ' + fileName);
@@ -39,39 +38,32 @@ export function openFileForPatch(fileErrors) {
     fixes: [],
     lines: []
   };
-  let lineNumbersWithErrors = fileErrors.errors.map((error) => {
-    // Will return an array of line numbers where errors occur
-    let lineNum = error.lineNum.split(':')[0];
-    return lineNum - 1;
-  });
+  let lineNumbersWithErrors = fileErrors.errors
+    .map((error) => {
+      // Will return an array of line numbers where errors occur
+      let lineNum = error.lineNum.split(':')[0];
+      return lineNum - 1;
+    });
 
   //console.log(`${fileName} has errors on ${lineNumbersWithErrors}`);
   let fixes = configureFixes();
-  let patchedLines = lines.map((line, index) => {
-    // 1. determine if should mutate
-    //
-    // 2. do mutation or not
-    //
-    // 3. retnrn line
-    
-    //This line has an error
-    let errorOnThisLine = lineNumbersWithErrors.indexOf(index);
-    if (errorOnThisLine >= 0) {
-      let error = fileErrors.errors[errorOnThisLine];
-      let { lineNum, errorType, rule } = error;
-      //console.log(`Line ${index}:${errorType} (${rule}) -> error: ${line}`);
-      if (rule in fixes) {
-        let fix = fixes[rule];
-        if (fix.exec) {
-          line = fix.exec(line, error);
-          patchInfo.fixes.push({
-            lineNum,
-            rule
-          })
-          patchInfo.patchCount++;
-        } else {
-          //console.log(`Patching ${rule} on ${index}`);
-          line = line.replace(fix.search, fix.replace);
+  let patchedLines = lines
+    .map((line, index) => {
+      // 1. determine if should mutate
+      //
+      // 2. do mutation or not
+      //
+      // 3. retnrn line
+      
+      //This line has an error
+      let errorOnThisLine = lineNumbersWithErrors.indexOf(index);
+      if (errorOnThisLine >= 0) {
+        let error = fileErrors.errors[errorOnThisLine];
+        let { lineNum, errorType, rule } = error;
+        //console.log(`Line ${index}:${errorType} (${rule}) -> error: ${line}`);
+        if (rule in fixes) {
+          let fix = fixes[rule];
+          line = applyFix(line, fix, error);
           patchInfo.fixes.push({
             lineNum,
             rule
@@ -79,9 +71,8 @@ export function openFileForPatch(fileErrors) {
           patchInfo.patchCount++;
         }
       }
-    }
-    return line;
-  });
+      return line;
+    });
 
   console.log(`Patched ${patchInfo.patchCount} errors on ${fileName}`);
   totalPatchedCount += patchInfo.patchCount;
